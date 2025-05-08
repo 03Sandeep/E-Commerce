@@ -2,6 +2,7 @@ import { comparePassssword, hashPassword } from "../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
 
 import User from "../models/User.js";
+import router from "../routes/authRoute.js";
 export const registerController = async (req, res) => {
   // registration logic here
   try {
@@ -107,6 +108,31 @@ export const loginController = async (req, res) => {
       success: false,
       message: "Error in login",
       error,
+    });
+  }
+};
+
+export const testController = (req, res) => {
+  res.send("Protected Route");
+  console.log("Protected Route");
+};
+
+export const isAdmin = (req, res) => {
+  try {
+    if (req.role !== 1) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized Access",
+      });
+    } else {
+      next();
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(401).send({
+      success: false,
+      err,
+      message: "Error in admin middleware",
     });
   }
 };
