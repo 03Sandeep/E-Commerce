@@ -1,4 +1,6 @@
-import { hashPassword } from "../helpers/authHelper.js";
+import { comparePassssword, hashPassword } from "../helpers/authHelper.js";
+import JWT from "jsonwebtoken";
+
 import User from "../models/User.js";
 export const registerController = async (req, res) => {
   // registration logic here
@@ -52,6 +54,58 @@ export const registerController = async (req, res) => {
     res.status(500).send({
       sucess: false,
       message: "Error in Registration",
+      error,
+    });
+  }
+};
+
+export const loginController = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    //validate
+    if (!email || !password) {
+      console.log("line 67");
+      return res.status(404).send({
+        sucess: false,
+        message: "Invalid email or password",
+      });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("line 75");
+      return res.status(404).send({
+        sucess: false,
+        message: "Email not registered",
+      });
+    }
+    const match = await comparePassssword(password, user.password);
+    if (!password) {
+      return res.status(200).send({
+        sucess: false,
+        message: "Incorrect password",
+      });
+    }
+    //token
+    const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(200).send({
+      success: true,
+      message: "Login successfully",
+      user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+      },
+      token,
+    });
+  } catch (error) {
+    console.log("Error in Login");
+    res.status(500).send({
+      success: false,
+      message: "Error in login",
       error,
     });
   }
